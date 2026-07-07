@@ -1,0 +1,32 @@
+name: Upload Transactions CSV
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "data/transactions.csv"
+
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::441661110146:role/github-oidc-role
+          aws-region: ap-southeast-2
+
+      - name: Upload transactions.csv to S3
+        run: |
+          aws s3 cp data/transactions.csv s3://daily-transaction-processing-441661110146/input/transactions.csv
