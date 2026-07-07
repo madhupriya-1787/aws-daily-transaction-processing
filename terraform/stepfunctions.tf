@@ -38,15 +38,15 @@ resource "aws_iam_role_policy" "stepfunctions_policy" {
         ]
         Resource = "*"
       },
-        {
-       Effect = "Allow"
-       Action = [
-         "events:PutRule",
-         "events:PutTargets",
-         "events:DescribeRule"
-      ]
-      Resource = "*"
-     }
+      {
+        Effect = "Allow"
+        Action = [
+          "events:PutRule",
+          "events:PutTargets",
+          "events:DescribeRule"
+        ]
+        Resource = "*"
+      }
     ]
   })
 }
@@ -151,5 +151,3 @@ resource "aws_sfn_state_machine" "transaction_workflow" {
     }
   })
 }
-
-
