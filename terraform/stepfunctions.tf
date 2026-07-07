@@ -37,7 +37,16 @@ resource "aws_iam_role_policy" "stepfunctions_policy" {
           "iam:PassRole"
         ]
         Resource = "*"
-      }
+      },
+        {
+       Effect = "Allow"
+       Action = [
+         "events:PutRule",
+         "events:PutTargets",
+         "events:DescribeRule"
+      ]
+      Resource = "*"
+     }
     ]
   })
 }
