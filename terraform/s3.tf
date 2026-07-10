@@ -1,19 +1,18 @@
-resource "aws_s3_bucket" "transaction_bucket" {
-  bucket = "${var.project_name}-${data.aws_caller_identity.current.account_id}"
-
-  tags = {
-    Name = "${var.project_name}-bucket"
-  }
+data "aws_s3_bucket" "transaction_bucket" {
+  bucket = "daily-transaction-processing-441661110146"
 }
 
 resource "aws_s3_object" "input_folder" {
-  bucket = aws_s3_bucket.transaction_bucket.id
+  bucket = data.aws_s3_bucket.transaction_bucket.id
   key    = "input/"
 }
 
-resource "aws_s3_object" "output_folder" {
-  bucket = aws_s3_bucket.transaction_bucket.id
-  key    = "output/"
+resource "aws_s3_object" "intermediate_folder" {
+  bucket = data.aws_s3_bucket.transaction_bucket.id
+  key    = "intermediate/"
 }
 
-data "aws_caller_identity" "current" {}
+resource "aws_s3_object" "output_folder" {
+  bucket = data.aws_s3_bucket.transaction_bucket.id
+  key    = "output/"
+}
