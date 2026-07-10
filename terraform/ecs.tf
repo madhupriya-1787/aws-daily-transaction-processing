@@ -27,7 +27,7 @@ resource "aws_ecs_task_definition" "transaction_task" {
       environment = [
         {
           name  = "BUCKET_NAME"
-          value = aws_s3_bucket.transaction_bucket.bucket
+          value = data.aws_s3_bucket.transaction_bucket.bucket
         }
       ]
 
