@@ -56,7 +56,7 @@ resource "aws_iam_role_policy" "ecs_s3_policy" {
         "s3:GetObject",
         "s3:PutObject"
       ]
-      Resource = "${aws_s3_bucket.transaction_bucket.arn}/*"
+      Resource = "${data.aws_s3_bucket.transaction_bucket.arn}/*"
     }]
   })
 }
