@@ -55,7 +55,7 @@ try:
         negative_count = 0
 
         for row in reader:
-            amount = float(row["amount"])
+            amount = float(row["Amount"])
 
             if amount < 0:
                 negative_count += 1
