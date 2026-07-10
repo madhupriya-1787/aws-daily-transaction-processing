@@ -7,7 +7,7 @@ resource "aws_cloudwatch_event_rule" "s3_upload_rule" {
     detail-type = ["Object Created"]
     detail = {
       bucket = {
-        name = [aws_s3_bucket.transaction_bucket.bucket]
+        name = [data.aws_s3_bucket.transaction_bucket.bucket]
       }
       object = {
         key = [{
