@@ -30,10 +30,6 @@ resource "aws_ecs_task_definition" "transaction_task" {
     value = data.aws_s3_bucket.transaction_bucket.bucket
   },
   {
-    name  = "INPUT_KEY"
-    value = "intermediate/cleaned_transactions.csv"
-  },
-  {
     name  = "OUTPUT_KEY"
     value = "output/daily_transaction_summary.csv"
   }
