@@ -55,6 +55,6 @@ resource "aws_cloudwatch_event_target" "stepfunctions_target" {
 }
 
 resource "aws_s3_bucket_notification" "eventbridge_notification" {
-  bucket      = aws_s3_bucket.transaction_bucket.id
+  bucket      = data.aws_s3_bucket.transaction_bucket.id
   eventbridge = true
 }
