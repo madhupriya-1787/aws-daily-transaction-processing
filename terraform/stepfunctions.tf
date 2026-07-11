@@ -40,16 +40,6 @@ resource "aws_iam_role_policy" "stepfunctions_policy" {
         Effect = "Allow"
 
         Action = [
-          "ssm:SendCommand",
-          "ssm:GetCommandInvocation"
-        ]
-
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-
-        Action = [
           "ecs:RunTask",
           "ecs:DescribeTasks",
           "ecs:StopTask",
@@ -78,7 +68,7 @@ resource "aws_sfn_state_machine" "transaction_workflow" {
   role_arn = aws_iam_role.stepfunctions_role.arn
 
   definition = jsonencode({
-    Comment = "Transaction processing workflow with EC2 preprocessing and ECS processing"
+    Comment = "Transaction processing workflow with EC2 validation and ECS processing"
 
     StartAt = "CheckEC2Instance"
 
@@ -103,7 +93,7 @@ resource "aws_sfn_state_machine" "transaction_workflow" {
           {
             Variable     = "$.Reservations[0].Instances[0].State.Name"
             StringEquals = "running"
-            Next         = "WaitForSSM"
+            Next         = "RunECSTask"
           },
           {
             Variable     = "$.Reservations[0].Instances[0].State.Name"
@@ -154,102 +144,11 @@ resource "aws_sfn_state_machine" "transaction_workflow" {
           {
             Variable     = "$.Reservations[0].Instances[0].State.Name"
             StringEquals = "running"
-            Next         = "WaitForSSM"
+            Next         = "RunECSTask"
           }
         ]
 
         Default = "EC2ValidationFailed"
-      }
-
-      WaitForSSM = {
-        Type    = "Wait"
-        Seconds = 20
-        Next    = "RunPreprocessing"
-      }
-
-      RunPreprocessing = {
-        Type     = "Task"
-        Resource = "arn:aws:states:::aws-sdk:ssm:sendCommand"
-
-        Parameters = {
-          InstanceIds = [
-            aws_instance.check_ec2.id
-          ]
-
-          DocumentName = "AWS-RunShellScript"
-
-          Parameters = {
-            commands = [
-              "python3 /opt/transaction-processing/preprocess.py"
-            ]
-          }
-        }
-
-        ResultPath = "$.PreprocessCommand"
-        Next       = "WaitForPreprocessing"
-      }
-
-      WaitForPreprocessing = {
-        Type    = "Wait"
-        Seconds = 10
-        Next    = "CheckPreprocessingStatus"
-      }
-
-      CheckPreprocessingStatus = {
-        Type     = "Task"
-        Resource = "arn:aws:states:::aws-sdk:ssm:getCommandInvocation"
-
-        Parameters = {
-          "CommandId.$" = "$.PreprocessCommand.Command.CommandId"
-          InstanceId    = aws_instance.check_ec2.id
-        }
-
-        ResultPath = "$.PreprocessStatus"
-        Next       = "IsPreprocessingComplete"
-      }
-
-      IsPreprocessingComplete = {
-        Type = "Choice"
-
-        Choices = [
-          {
-            Variable     = "$.PreprocessStatus.Status"
-            StringEquals = "Success"
-            Next         = "RunECSTask"
-          },
-          {
-            Variable     = "$.PreprocessStatus.Status"
-            StringEquals = "Pending"
-            Next         = "WaitForPreprocessing"
-          },
-          {
-            Variable     = "$.PreprocessStatus.Status"
-            StringEquals = "InProgress"
-            Next         = "WaitForPreprocessing"
-          },
-          {
-            Variable     = "$.PreprocessStatus.Status"
-            StringEquals = "Delayed"
-            Next         = "WaitForPreprocessing"
-          },
-          {
-            Variable     = "$.PreprocessStatus.Status"
-            StringEquals = "Failed"
-            Next         = "PreprocessingFailed"
-          },
-          {
-            Variable     = "$.PreprocessStatus.Status"
-            StringEquals = "Cancelled"
-            Next         = "PreprocessingFailed"
-          },
-          {
-            Variable     = "$.PreprocessStatus.Status"
-            StringEquals = "TimedOut"
-            Next         = "PreprocessingFailed"
-          }
-        ]
-
-        Default = "PreprocessingFailed"
       }
 
       RunECSTask = {
@@ -283,12 +182,6 @@ resource "aws_sfn_state_machine" "transaction_workflow" {
         Type  = "Fail"
         Error = "EC2ValidationFailed"
         Cause = "EC2 instance is not running or could not be started"
-      }
-
-      PreprocessingFailed = {
-        Type  = "Fail"
-        Error = "EC2PreprocessingFailed"
-        Cause = "The EC2 preprocessing command failed, was cancelled, or timed out"
       }
     }
   })
