@@ -45,10 +45,13 @@ jobs:
 
       - name: Terraform Validate
         run: terraform validate
+      
 
       - name: Terraform Plan
         run: terraform plan
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
+      - name: Terraform destory
+        run : terraform destory -auto-approve
 
